@@ -183,7 +183,7 @@ func (bc *Blockchain) FindUTXO(address string) []TXOutput {
 }
 
 //创建一个含有创世区块的区块链
-func NewBlockchain() *Blockchain {
+func NewBlockchain(address string) *Blockchain {
 	if dbExists() ==false{
 		fmt.Println("No existing blockchain found. Create one first.")
 		os.Exit(1)
