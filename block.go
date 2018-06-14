@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/gob"
 	"log"
+	"crypto/sha256"
 )
 
 //定义一个区块
@@ -12,7 +13,7 @@ type Block struct {
 	//当前时间戳
 	Timestamp int64
 	//交易信息
-	Data []byte
+	Transactions []*Transaction
 	//前一个区块的Hash值
 	PrevBlockHash []byte
 	//当前区块的Hash值
@@ -33,9 +34,22 @@ func (b *Block) Serialize() []byte {
 	return result.Bytes()
 }
 
+//获取交易的hash值
+func (b *Block) HashTransactions() []byte {
+	var txHashes [][]byte
+	var txHash [32]byte
+
+	for _, tx := range b.Transactions {
+		txHashes = append(txHashes,tx.ID)
+	}
+	txHash = sha256.Sum256(bytes.Join(txHashes,[]byte{}))
+
+	return txHash[:]
+}
+
 //创建区块
-func NewBlock(data string, prevBlockHash []byte) *Block {
-	block := &Block{time.Now().Unix(), []byte(data), prevBlockHash, []byte{}, 0}
+func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
+	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
 	pow := NewProofOfWork(block)
 	nonce, hash := pow.Run()
 
@@ -45,17 +59,17 @@ func NewBlock(data string, prevBlockHash []byte) *Block {
 }
 
 //创建创世区块
-func NewGenesisBlock() *Block {
-	return NewBlock("Genesis Block", []byte{})
+func NewGenesisBlock(coinbase *Transaction) *Block {
+	return NewBlock([]*Transaction{coinbase}, []byte{})
 }
 
 //反序列化
 func DeserializeBlock(d []byte) *Block {
 	var block Block
 
-	decoder:=gob.NewDecoder(bytes.NewReader(d))
-	err:=decoder.Decode(&block)
-	if err!=nil {
+	decoder := gob.NewDecoder(bytes.NewReader(d))
+	err := decoder.Decode(&block)
+	if err != nil {
 		log.Panic(err)
 	}
 
