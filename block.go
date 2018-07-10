@@ -16,13 +16,14 @@ type Block struct {
 	//前一个区块的Hash值
 	PrevBlockHash []byte
 	//当前区块的Hash值
-	Hash  []byte
-	Nonce int
+	Hash   []byte
+	Nonce  int
+	Height int
 }
 
 //创建区块
-func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
-	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0}
+func NewBlock(transactions []*Transaction, prevBlockHash []byte, height int) *Block {
+	block := &Block{time.Now().Unix(), transactions, prevBlockHash, []byte{}, 0, height}
 	pow := NewProofOfWork(block)
 	nonce, hash := pow.Run()
 
@@ -33,7 +34,7 @@ func NewBlock(transactions []*Transaction, prevBlockHash []byte) *Block {
 
 //创建创世区块
 func NewGenesisBlock(coinbase *Transaction) *Block {
-	return NewBlock([]*Transaction{coinbase}, []byte{})
+	return NewBlock([]*Transaction{coinbase}, []byte{},0)
 }
 
 //获取交易的hash值
