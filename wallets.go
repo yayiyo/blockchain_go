@@ -10,17 +10,19 @@ import (
 	"os"
 )
 
+const walletFile = "wallet_%s.dat"
+
 //存储多个钱包的集合
 type Wallets struct {
 	Wallets map[string]*Wallet
 }
 
 //创建钱包集合，并在钱包集合存在的情况下读取出来
-func NewWallets() (*Wallets, error) {
+func NewWallets(nodeID string) (*Wallets, error) {
 	wallets := Wallets{}
 	wallets.Wallets = make(map[string]*Wallet)
 
-	err := wallets.LoadFromFile()
+	err := wallets.LoadFromFile(nodeID)
 
 	return &wallets, err
 }
@@ -51,7 +53,8 @@ func (ws *Wallets) GetWallet(address string) Wallet {
 }
 
 //从数据库中下载钱包集合
-func (ws *Wallets) LoadFromFile() error {
+func (ws *Wallets) LoadFromFile(nodeID string) error {
+	walletFile := fmt.Sprintf(walletFile, nodeID)
 	if _, err := os.Stat(walletFile); os.IsNotExist(err) {
 		return err
 	}
@@ -75,8 +78,9 @@ func (ws *Wallets) LoadFromFile() error {
 }
 
 //将钱包集合保存到数据库
-func (ws Wallets) SaveToFile() {
+func (ws Wallets) SaveToFile(nodeID string) {
 	var content bytes.Buffer
+	walletFile := fmt.Sprintf(walletFile, nodeID)
 
 	gob.Register(elliptic.P256())
 
