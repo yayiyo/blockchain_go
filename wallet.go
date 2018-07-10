@@ -10,9 +10,8 @@ import (
 	"bytes"
 )
 
-const version = 0x00
+const version = byte(0x00)
 
-const walletFile = "wallet.dat"
 const addressChecksumLen = 4
 
 //定义钱包结构体，存储公钥和私钥
