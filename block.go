@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"log"
-	"crypto/sha256"
 )
 
 //定义一个区块
@@ -19,32 +18,6 @@ type Block struct {
 	//当前区块的Hash值
 	Hash  []byte
 	Nonce int
-}
-
-//序列化区块
-func (b *Block) Serialize() []byte {
-	var result bytes.Buffer
-	encoder := gob.NewEncoder(&result)
-
-	err := encoder.Encode(b)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	return result.Bytes()
-}
-
-//获取交易的hash值
-func (b *Block) HashTransactions() []byte {
-	var txHashes [][]byte
-	var txHash [32]byte
-
-	for _, tx := range b.Transactions {
-		txHashes = append(txHashes,tx.ID)
-	}
-	txHash = sha256.Sum256(bytes.Join(txHashes,[]byte{}))
-
-	return txHash[:]
 }
 
 //创建区块
@@ -63,17 +36,29 @@ func NewGenesisBlock(coinbase *Transaction) *Block {
 	return NewBlock([]*Transaction{coinbase}, []byte{})
 }
 
-//获取区块中交易的hash
-func (b *Block) HashTransaction() []byte {
-	var txHashes [][]byte
-	var txHash [32]byte
+//获取交易的hash值
+func (b *Block) HashTransactions() []byte {
+	var transactions [][]byte
 
-	for _,tx:=range b.Transactions{
-		txHashes = append(txHashes,tx.Hash())
+	for _, tx := range b.Transactions {
+		transactions = append(transactions, tx.Serialize())
 	}
-	txHash = sha256.Sum256(bytes.Join(txHashes,[]byte{}))
+	mTree := NewMerkleTree(transactions)
 
-	return txHash[:]
+	return mTree.RootNode.Data
+}
+
+//序列化区块
+func (b *Block) Serialize() []byte {
+	var result bytes.Buffer
+	encoder := gob.NewEncoder(&result)
+
+	err := encoder.Encode(b)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return result.Bytes()
 }
 
 //反序列化
