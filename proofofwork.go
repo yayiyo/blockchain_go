@@ -13,7 +13,7 @@ var (
 )
 
 //定义挖矿难度
-const targetBits = 24
+const targetBits = 16
 
 //定义工作量证明
 type ProofOfWork struct {
