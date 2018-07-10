@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/gob"
+	"log"
 )
 
 //交易输出
@@ -23,8 +25,39 @@ func (out *TXOutput) IsLockedWithKey(pubKeyHash []byte) bool {
 
 //创建TXOutput
 func NewTXOutput(value int, address string) *TXOutput {
-	txo:=&TXOutput{value,nil}
+	txo := &TXOutput{value, nil}
 	txo.Lock([]byte(address))
 
 	return txo
+}
+
+//定义存储所有交易输出的结构体
+type TXOutputs struct {
+	Outputs []TXOutput
+}
+
+//序列化所有交易输出
+func (outs TXOutputs) Serialize() []byte {
+	var buff bytes.Buffer
+
+	enc := gob.NewEncoder(&buff)
+	err := enc.Encode(outs)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return buff.Bytes()
+}
+
+//反序列化所有交易输出
+func DeserializeOutputs(data []byte) TXOutputs {
+	var outputs TXOutputs
+
+	dec := gob.NewDecoder(bytes.NewReader(data))
+	err := dec.Decode(&outputs)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	return outputs
 }
